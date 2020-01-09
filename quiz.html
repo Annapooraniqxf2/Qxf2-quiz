@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Quiz app</title>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+  </head>
+  <body>
+               <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Open Modal</button>
+
+               <!-- Modal -->
+               <div class="modal fade" id="myModal" role="dialog">
+                 <div class="modal-dialog">
+                 
+                   <!-- Modal content-->
+                   <div class="modal-content">
+                     <div class="modal-body">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" aria-valuenow="70"
+                            aria-valuemin="0" aria-valuemax="100" style="width:16%">
+                            </div>
+                          </div>
+                       <div class="quiz">
+                          <div class="row">
+                              <div class="col-lg-12 col-xl-12 col-sm-12 col-xs-12" id="que">
+                              </div>
+                          </div>
+                          <div class="row">
+                              <div class="col-lg-6 col-xl-6 col-sm-6 col-xs-6" id="question"></div>
+                              <div class="col-lg-6 col-xl-6 col-sm-6 col-xs-6" id="answer"></div>
+                          </div>
+                       </div>
+                       <button id="next-btn" onClick="nextQuestion()" class="btn btn-default">Next</button>
+                     </div>
+                     <div class="modal-footer">
+                       <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                     </div>
+                   </div>
+                   
+                 </div>
+               </div>
+               
+             </div>
+             
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@2.4.1/dist/email.min.js"></script>
+    <script>
+      var current_index = 0;
+      var rand = Math.random().toString(36).split(".")[1].slice(0,8)+"";
+      var answers = {};
+      var answerElement = document.getElementById("answer");
+      var divQuestionElement = document.getElementById("question");
+      var queElement = document.getElementById("que")
+      var nextBtn = document.getElementById("next-btn");
+      var progressBar = document.getElementsByClassName("progress-bar")[0];
+      var questions = [
+        {
+          question: "How many years of experience do you have?",
+          nested:false,
+          multi:false,
+          input:true,
+          type:"number",
+          name:"exp",
+          answers:[
+          "We have only recently started hiring people in this band. We do not have managers who help you on a daily basis. So you should not interview us unless you are confident that you can work with minimal guidance.",
+          "We have not had a good record of hiring people with your range of experience. The Qxf2 employees with this range of experience joined with 0-1 years of experience and grew with Qxf2",
+          "This seems to be the ideal range of experience where people benefit from joining Qxf2. People in this range of experience find their first 6-months with Qxf2 extremely rough as they learn new habits to survive in a fully remote environment while increasing their output as an individual",
+          "We are hit or miss for new hires with this range of experience. The main stumbling blocks happen to be:\n a) how fast an individual can unlearn some old habits and pick up new ones\n b) how comfortable the individual is being hands-on"
+          ]
+        },
+        {
+          question:"How many years of managerial experience do you have?",
+          nested:false,
+          multi:false,
+          input:true,
+          type:"number",
+          name:"manage-exp",
+          answers:[
+          "Thank you for letting us know",
+          "Please know that all our roles (including QA manager) involve significantly higher levels of individual contribution. So if you have not been hands on in the recent past, Qxf2 will not be a good fit for you."    
+          ]
+        },
+        {
+           questions:[
+           {
+               question:"How many companies have you worked for",
+               input:true           
+           },
+           {
+               question:"Are you currently working?",
+               input:false,
+               choices:[
+                 {
+                   choice:"Yes"
+                 },
+                 {
+                   choice:"No"
+                 }
+               ]
+           }
+           ],
+           nested:true,
+           multi:false,
+           answers:[
+           "People who job hop frequently rarely make it through our interview process. Please reconsider applying to us.",
+           "People who do not job hop frequently have a significantly higher chance of clearing our interview process."
+           ]
+        },
+        {
+          question:"Have you ever worked in a small company?",
+          input:false,
+          multi:false,
+          choices:[
+            {
+               choice:"yes",
+               answer:"Cool! Folks who have worked in a smaller company have a much higher chance of liking our work environment"
+            },
+            {
+               choice:"no",
+               answer:"The initial experience could be rough for you. Please make sure to talk to a few friends and acquaintances about working in a small company before applying to us"
+            }
+          ]
+        },
+        {
+          question:"Why are you looking for a change?",
+          multi:true,
+          input:false,
+          choices:[
+           {
+               choice:"Better salary",
+               answer:"We pay fair market rates. Somewhat higher than the big IT service providers but much lower than the hot startups in Bangalore"
+           },
+           {
+               choice:"Missed promotion",
+               answer:"We are not built for rapid growth. So your scope for promotion within Qxf2 is very low. Are you sure you want to interview with us?"
+           },
+           {
+               choice:"Unhappy with my last performance appraisal",
+               answer:"Thank you for letting us know!"
+           },
+           {
+               choice:"Bored with current role",
+               answer:"Interestingly, this reason is a good indicator that you will do well at Qxf2"
+           },
+           {
+               choice:"Lack of opportunities",
+               answer:"We have lots of technical opportunities and learning opportunities but highly limited managerial opportunities. If you are looking for mainly managerial opportunities, we will not be a good fit for you."
+           },
+           {
+               choice:"Personal reason",
+               answer:"Remote work requires a lot more discipline and structure than non-remote work. Before applying to us, please make sure that you can spend 9-hours every day"
+           }
+          ]
+        },
+        {
+          question:"What is your current CTC?",
+          input:true,
+          text:"lakhs per annum",
+          type:"number",
+          name:"salary",
+          answer:"Thank you for letting us know. We pay fair wages that are above IT service providers but below the VC funded startups."
+        },
+        {
+          question:"Before we reveal our email id, we want to remind you one last time of a few things that trip up candidates:",
+          multi:true,
+          input:false,
+          choices:[
+          {choice:"Qxf2 is NOT built for rapid growth or getting rich quickly"},
+          {choice:"We have 45-hour weeks (not 40!)"},
+          {choice:"If you are on a client, you will have to provide at least one hour of overlap in their timezone"},
+          {choice:"Remote work does not mean you can work whenever you want. You get to choose which 9 hours (or 8 if you are on a client) you work but it has to be consistent through the week."}
+          ]
+        }
+      ];
+      function showQuestions(){
+               var current_question = questions[current_index];
+               divQuestionElement.innerHTML = "";
+               answerElement.innerText = "";
+               nextBtn.disabled = true;
+               if(current_question.nested && current_question.questions.length){
+               queElement.innerHTML=""
+               for(let i=0;i<current_question.questions.length;i++){
+                              let divElement = document.createElement("div");
+                              divElement.setAttribute("class",`question_${current_index}`);
+                              let h3Element = document.createElement("h3");
+                              let que = current_question.questions[i].question;
+                              h3Element.textContent = `Q:${current_index+1}.${i+1} ${que}`;
+                              divElement.appendChild(h3Element);
+                              if(current_question.questions[i].input){
+                              let paraElement = makeInput("number","company_exp");
+                              divElement.appendChild(paraElement);
+                              }else{
+                                             
+                              for(let j=0;j<current_question.questions[i].choices.length;j++){
+                                             let paraElement = document.createElement("p")
+                                             var choice = current_question.questions[i].choices[j].choice
+                                             paraElement.innerHTML = `<input type="radio" onClick="selectAnswer(${current_index},${j})" name="choice_${current_index}"/> ${choice}`;
+                                             divElement.appendChild(paraElement);
+                              }                                         
+                              
+                              }
+                              divQuestionElement.appendChild(divElement);
+               }
+
+               }
+               else{
+                              var questionElement = document.createElement("div");
+                              queElement.innerHTML = `<h3>Q:${current_index+1} ${current_question.question}</h3>`
+                             questionElement.setAttribute("class",`question_${current_index}`);
+                             if(current_question.input && current_question.type && current_question.name){
+                              let paraElement = makeInput(current_question.type,current_question.name,current_question.text || "");
+                              questionElement.appendChild(paraElement);
+                             }
+                             else{
+                              current_question.choices.forEach((el,indexOfChoice) => {
+                                         var paraElement = document.createElement("p");
+                                         let type;
+                                         if(current_question.multi){
+                                             type="checkbox";
+                                         }else{
+                                             type="radio";
+                                         }
+                                         paraElement.innerHTML = `<input type=${type} onClick="selectAnswer(${current_index},${indexOfChoice})"  name="choice_${current_index}" /> ${el.choice}`;
+                                         questionElement.appendChild(paraElement);
+                                             
+                              });
+                             }
+
+                              divQuestionElement.appendChild(questionElement);
+               }
+      }
+
+      showQuestions();
+
+      function selectAnswer(questionIndex,answerIndex){
+
+        if(questions[questionIndex].choices && questions[questionIndex].choices.length){
+            let trueOrFalse = disbaleRadioButtons(questionIndex,answerIndex);
+            if(questionIndex===6){
+
+                if(trueOrFalse === true){
+                  nextBtn.disabled = false;
+                }else{
+                  nextBtn.disabled = true;
+                }
+
+                return;
+
+
+            }
+            
+
+        }
+        
+
+        var avgTime;
+          if(questionIndex===4){
+            if(!answers[questionIndex]){
+              answers[questionIndex] = [];
+            }
+            if(answers[questionIndex].length!==6){
+              answers[questionIndex].push(answerIndex);
+            }
+            answerElement.innerHTML = questions[questionIndex].choices[answerIndex].answer;
+            return nextBtn.disabled = false;
+          }
+
+                     
+               if(questionIndex===2){
+                if(!answers[questionIndex]){
+                              answers[questionIndex] = {};
+                }
+               if(typeof answerIndex === "string"){
+               answers[questionIndex]["1"] = answerIndex
+               }
+
+               if(typeof answerIndex === "number"){
+               answers[`${questionIndex}`]["2"] = answerIndex;               
+               }
+
+               if(answers[questionIndex]["1"] && (answers[questionIndex]["2"]===0 || answers[questionIndex]["2"]===1)){
+               var radios = document.querySelectorAll(`input[name="choice_${questionIndex}"]`);
+                if(radios[0].checked){
+                  radios[1].disabled = true;
+                }
+
+                if(radios[1].checked){
+                  radios[0].disabled = true;
+                }
+               nextBtn.disabled = false;
+               answerElement.innerHTML = averageTimeOfEmployee();
+               }else{
+                 nextBtn.disabled = true;
+               }
+               return;
+               }
+
+               if(answerIndex===""){
+                answerElement.innerHTML = ""; 
+                return nextBtn.disabled = true;
+               }else{
+                 nextBtn.disabled = false;
+               }
+               
+               answers[questionIndex] = answerIndex;
+               let ans = answerIndex;
+               if(typeof answerIndex==="number"){
+                  ans = questions[current_index].choices[answerIndex].answer;
+               }
+               if(questionIndex===0 || questionIndex===1){
+                  ans = getAnswerFirstOrSecond(questionIndex,answerIndex);
+              }
+               if(questionIndex!==5){
+                answerElement.innerHTML = ans;
+               }          
+               
+      }
+
+      function nextQuestion(){
+               if(current_index !== questions.length - 1){
+                var progressBarWidth = parseInt(progressBar.style.width);
+               progressBarWidth += 16;
+               progressBar.style.width = progressBarWidth+"%";
+               ++current_index;
+               showQuestions();
+               }else{
+                 showEmail();
+               }
+               
+      }
+
+      
+
+      function input(e){
+
+               var index = parseInt(e.getAttribute("data-index"));
+               var value = e.value;
+               selectAnswer(index,value);               
+      }
+
+      function averageTimeOfEmployee(){
+        var avgTime;
+        var totalExp = parseInt(answers["0"]);
+        var noOfCompanies = parseInt(answers["2"]["1"]);
+       
+        if(noOfCompanies-1===0){
+          avgTime = 1;
+        }
+
+        if(noOfCompanies===0){
+          return 'We hire freshers only via interships. Please be on the lookout on <a href="https://internshala.com/" target="_blank">InternShala.com</a> for internship opportunities with Qxf2';
+        }
+
+        if(answers["2"]["2"]==0){
+          avgTime = totalExp / (noOfCompanies - 1); 
+        }
+
+        if(answers["2"]["2"]==1){
+          avgTime = totalExp / (noOfCompanies);
+        }
+
+        if(avgTime > 4){
+          return questions[2].answers[1];
+        }
+
+        if(avgTime < 4){
+          return questions[2].answers[0];
+        }
+
+      }
+
+
+
+      function makeInput(type,name,text){
+        text = text || "";
+        let paraElement = document.createElement("p");
+        paraElement.innerHTML = `<input type="${type}" name="${name}"
+        class="form-control" id="${name}" data-index="${current_index}" onkeyup="input(this)"/> ${text}`;
+        return paraElement;
+      }
+
+      function showEmail(){
+
+      divQuestionElement.innerHTML = "";
+      queElement.innerHTML = "";
+      nextBtn.style.display = "none"
+      let h3 = document.createElement("h3");
+      h3.innerHTML = `mak${rand}@qxf2.com`;
+      let paraElement = document.createElement("p");
+      let buttonElement = document.createElement("button");
+      buttonElement.setAttribute("class","btn btn-success");
+      buttonElement.setAttribute("onClick",`makeAnswer()`);
+      buttonElement.innerHTML = "Send Email";
+      paraElement.appendChild(buttonElement);
+      divQuestionElement.appendChild(h3);
+      divQuestionElement.appendChild(paraElement);  
+
+      }
+
+      function makeAnswer(){
+        let email = `mak${rand}@qxf2.com`;
+        let Answer = "";
+        for(let prop in answers){
+          let index = parseInt(prop);
+          if(questions[index].choices && !questions[index].multi){
+            let choice = questions[index].choices[answers[prop]].choice;
+            Answer = Answer + `${index+1}. ${choice}\n`;
+          }else if(questions[index].input){
+            Answer = Answer + `${index+1}. ${answers[prop]}\n`;
+          }else if(questions[index].nested){
+            for(let nestedProp in answers[prop]){
+              let nestedIndex = parseInt(nestedProp);
+              if(typeof answers[index][nestedProp] === "string"){
+                Answer = Answer + `${index+1}.${nestedIndex} ${answers[nestedProp]}\n`
+              }
+              if(typeof answers[index][nestedProp]==="number"){
+                choice = questions[index].questions[nestedIndex-1].choices[answers[prop][nestedProp]].choice;
+                Answer = Answer + `${index+1}.${nestedIndex} ${choice}\n`;
+              }
+            }
+          }else if(questions[index].multi){
+            choice = ""; 
+            answers[prop].forEach(function(el){
+              choice = choice+questions[index].choices[el].choice+",";
+            });
+            Answer = Answer + `${index+1}. ${choice}\n`;
+          }
+
+        }
+
+        var data = {
+          service_id: 'default_service',
+          template_id: 'contact_form',
+          user_id: 'user_sLVwc5nbsxF2PpYyoi7vz',
+          template_params:{
+            "contact_number": `${rand}`,
+            "answers":Answer
+          }
+          
+        }
+        console.log(Answer);
+        let paraElement = document.createElement("p");
+        divQuestionElement.appendChild(paraElement);
+        $.ajax('https://api.emailjs.com/api/v1.0/email/send', {
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+        }).done(function() {
+          paraElement.setAttribute("class","text-success");
+          paraElement.innerHTML = "Your email is sent";
+        }).fail(function(error) {
+          paraElement.setAttribute("class","text-danger");
+          paraElement.innerHTML = "Your email is not sent.please try again";
+        });
+  
+
+
+      }
+
+
+    function getAnswerFirstOrSecond(questionIndex,answerIndex){
+
+      answerIndex = parseInt(answerIndex);
+      
+      let ans;
+      if(questionIndex===0){
+      
+        
+    if(answerIndex>=0 && answerIndex<=2){
+    return questions[questionIndex].answers[0];
+    }else if(answerIndex>=3 && answerIndex<=6){
+      return questions[questionIndex].answers[1];
+    }else if(answerIndex>=6 && answerIndex<=12){
+      return questions[questionIndex].answers[2];
+    }else if(answerIndex>=12){
+      return questions[questionIndex].answers[3];
+    }
+}
+
+if(questionIndex===1){
+
+if(answerIndex < 1 || (answerIndex>=1 && answerIndex<=3)){
+  ans = questions[questionIndex].answers[0];
+}else if(answerIndex > 3){
+  ans = questions[questionIndex].answers[1];
+}
+
+}
+
+return ans;
+      
+}
+
+
+function disbaleRadioButtons(questionIndex,answerIndex){
+
+let cq = questions[questionIndex];
+let radios = document.querySelectorAll(`input[name="choice_${questionIndex}"]`);
+if(questionIndex===6){
+   for(let i=0;i<radios.length;i++){
+     if(!radios[i].checked){
+       return false;
+     }
+   }
+   return true;
+}
+if((answerIndex===0 || answerIndex) && !cq.input && !cq.multi){
+radios.forEach((el,index) => {
+    if(!el.checked && index!==answerIndex){
+      el.disabled = true;
+    }
+})
+}
+
+}
+
+
+
+
+
+    </script>
+  </body>
+</html>
